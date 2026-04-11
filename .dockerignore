@@ -1,0 +1,62 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# .dockerignore — fichiers exclus du contexte de build Docker
+#
+# Principe : le contexte de build est tout ce que Docker envoie au daemon
+# lors de "docker build". Exclure les dossiers lourds ou inutiles réduit
+# drastiquement le temps de build et la taille du contexte.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Environnement virtuel Python (inutile dans l'image, pip ré-installe tout)
+venv/
+.venv/
+
+# Artefacts Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+
+# Cache pytest et coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Données volumineuses (montées en volume dans docker-compose)
+data/raw/
+data/processed/
+models_cache/
+
+# Logs (montés en volume dans docker-compose)
+logs/
+
+# Secrets (ne JAMAIS inclure dans une image Docker)
+.env
+*.env
+
+# Développement / documentation
+notebooks/
+docs/
+tests/
+*.md
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db

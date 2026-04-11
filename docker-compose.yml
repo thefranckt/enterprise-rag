@@ -1,0 +1,81 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.yml — Enterprise RAG
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Usage :
+#   docker compose up --build     # premier lancement (build + démarrage)
+#   docker compose up -d          # démarrage en arrière-plan
+#   docker compose down           # arrêt + suppression des conteneurs
+#   docker compose logs -f api    # suivi des logs en temps réel
+#
+# Prérequis :
+#   L'index FAISS doit exister avant de lancer l'API.
+#   Si data/processed/ est vide, l'API démarre en mode dégradé (health=false).
+#   Pour indexer les documents depuis le conteneur :
+#     docker compose run --rm api python -m scripts.build_index
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── API FastAPI ─────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: enterprise-rag-api
+
+    ports:
+      # Format : "PORT_HÔTE:PORT_CONTENEUR"
+      # Accès depuis la machine : http://localhost:8000
+      - "8000:8000"
+
+    volumes:
+      # data/ : contient l'index FAISS (faiss_index.bin + chunks.pkl)
+      #         et les PDFs sources.
+      #         Monté en lecture/écriture pour permettre la réindexation.
+      - ./data:/app/data
+
+      # logs/ : les logs applicatifs sont écrits dans ce dossier.
+      #         Monté pour accéder aux logs depuis l'hôte sans docker exec.
+      - ./logs:/app/logs
+
+      # models_cache/ : cache des modèles HuggingFace.
+      #                 Créé automatiquement au premier lancement.
+      #                 Évite de retélécharger ~600 MB à chaque redémarrage.
+      - models_cache:/app/models_cache
+
+    env_file:
+      # Charge les variables d'environnement depuis .env (si présent).
+      # Exemple de variable utile : DEBUG=true pour logs verbose.
+      - path: .env
+        required: false
+
+    environment:
+      # Forcer Python à ne pas bufferiser stdout/stderr
+      # → les logs apparaissent immédiatement dans docker compose logs
+      PYTHONUNBUFFERED: "1"
+      # Désactiver les warnings HuggingFace sur tokenizers parallèles
+      TOKENIZERS_PARALLELISM: "false"
+
+    restart: unless-stopped
+    # unless-stopped : relance le conteneur automatiquement sauf si
+    # on l'a arrêté manuellement avec "docker compose stop".
+
+    healthcheck:
+      # Vérifie que l'API répond sur /health toutes les 30s.
+      # Le health check du Dockerfile est repris ici pour docker compose ps.
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 90s
+      retries: 3
+
+# ── Volumes nommés ─────────────────────────────────────────────────────────────
+# Les volumes nommés sont gérés par Docker (stockés dans /var/lib/docker/).
+# Ils persistent entre "docker compose down" et "docker compose up".
+# Seul "docker compose down -v" les supprime.
+volumes:
+  models_cache:
+    driver: local
