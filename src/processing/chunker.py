@@ -8,6 +8,9 @@ Le chunking est une étape critique du pipeline RAG :
 
 from dataclasses import dataclass, field
 from src.ingestion.models import Document
+from src.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -129,7 +132,7 @@ def chunk_documents(
     for doc in documents:
         doc_chunks = chunk_document(doc, chunk_size, chunk_overlap)
         all_chunks.extend(doc_chunks)
-        print(f"  ✓ {doc.source} → {len(doc_chunks)} chunks")
+        logger.info("%s → %d chunks", doc.source, len(doc_chunks))
 
-    print(f"\n  Total : {len(all_chunks)} chunks pour {len(documents)} document(s)")
+    logger.info("Total : %d chunks pour %d document(s)", len(all_chunks), len(documents))
     return all_chunks

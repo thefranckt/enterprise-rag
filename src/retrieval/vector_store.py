@@ -15,7 +15,10 @@ import faiss
 import numpy as np
 
 from configs.settings import settings
+from src.logger import get_logger
 from src.processing.chunker import Chunk
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -70,7 +73,7 @@ class VectorStore:
         self.index.add(vectors)
         self.chunks = chunks
 
-        print(f"Index construit : {self.index.ntotal} vecteurs de dimension {dimension}")
+        logger.info("Index construit : %d vecteurs, dimension %d", self.index.ntotal, dimension)
 
     def search(self, query_vector: np.ndarray, top_k: int | None = None) -> list[SearchResult]:
         """
@@ -121,9 +124,9 @@ class VectorStore:
         with open(chunks_path, "wb") as f:
             pickle.dump(self.chunks, f)
 
-        print(f"Index sauvegardé dans : {save_dir}")
-        print(f"  → {faiss_path.name} ({faiss_path.stat().st_size / 1024:.1f} KB)")
-        print(f"  → {chunks_path.name} ({chunks_path.stat().st_size / 1024:.1f} KB)")
+        logger.info("Index sauvegardé dans : %s", save_dir)
+        logger.debug("%s (%.1f KB)", faiss_path.name, faiss_path.stat().st_size / 1024)
+        logger.debug("%s (%.1f KB)", chunks_path.name, chunks_path.stat().st_size / 1024)
 
     @classmethod
     def load(cls, directory: Path | None = None) -> "VectorStore":
@@ -151,5 +154,5 @@ class VectorStore:
         with open(chunks_path, "rb") as f:
             store.chunks = pickle.load(f)
 
-        print(f"Index chargé : {store.index.ntotal} vecteurs")
+        logger.info("Index chargé : %d vecteurs", store.index.ntotal)
         return store

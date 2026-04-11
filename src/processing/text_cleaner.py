@@ -7,6 +7,9 @@ en texte propre et exploitable par le pipeline RAG.
 
 import re
 from src.ingestion.models import Document
+from src.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def clean_text(text: str) -> str:
@@ -72,8 +75,10 @@ def clean_documents(documents: list[Document]) -> list[Document]:
         original_len = len(doc.content)
         cleaned_len = len(cleaned_doc.content)
         reduction = round((1 - cleaned_len / original_len) * 100, 1)
-        print(f"  ✓ Nettoyé : {doc.source} "
-              f"({original_len} → {cleaned_len} chars, -{reduction}%)")
+        logger.info(
+            "Nettoyé : %s (%d → %d chars, -%s%%)",
+            doc.source, original_len, cleaned_len, reduction,
+        )
         cleaned.append(cleaned_doc)
 
     return cleaned

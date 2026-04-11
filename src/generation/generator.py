@@ -22,7 +22,10 @@ Exemple :
 import torch
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 
+from src.logger import get_logger
 from src.retrieval.vector_store import SearchResult
+
+logger = get_logger(__name__)
 
 # Seuil de confiance minimum : en dessous, on considère que la réponse est absente
 CONFIDENCE_THRESHOLD = 0.01
@@ -52,12 +55,12 @@ class Generator:
           On utilise directement AutoTokenizer + AutoModelForQuestionAnswering,
           ce qui est équivalent mais indépendant du registre de tâches.
         """
-        print(f"Chargement du générateur : {model_name}")
+        logger.info("Chargement du générateur : %s", model_name)
         self.model_name = model_name
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForQuestionAnswering.from_pretrained(model_name)
         self.model.eval()
-        print("Générateur prêt.")
+        logger.info("Générateur prêt.")
 
     def build_context(self, results: list[SearchResult]) -> str:
         """

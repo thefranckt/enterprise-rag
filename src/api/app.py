@@ -17,8 +17,11 @@ from configs.settings import settings
 from src.embeddings.embedder import Embedder
 from src.generation.generator import Generator
 from src.ingestion import load_documents_from_dir
+from src.logger import get_logger
 from src.processing import clean_documents, chunk_documents
 from src.retrieval.vector_store import VectorStore
+
+logger = get_logger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -83,22 +86,22 @@ async def lifespan(app: FastAPI):
     Le code APRÈS yield s'exécute à l'arrêt.
     """
     # --- DÉMARRAGE ---
-    print("Démarrage de l'API — chargement des composants...")
+    logger.info("Démarrage de l'API — chargement des composants...")
 
     try:
         app_state["store"] = VectorStore.load()
         app_state["embedder"] = Embedder()
         app_state["generator"] = Generator()
         app_state["ready"] = True
-        print("API prête.")
+        logger.info("API prête.")
     except FileNotFoundError:
-        print("Index introuvable — lance d'abord le script d'indexation.")
+        logger.warning("Index introuvable — lance d'abord le script d'indexation.")
         app_state["ready"] = False
 
     yield  # L'application tourne ici
 
     # --- ARRÊT ---
-    print("Arrêt de l'API.")
+    logger.info("Arrêt de l'API.")
     app_state.clear()
 
 

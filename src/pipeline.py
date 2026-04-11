@@ -15,7 +15,10 @@ from dataclasses import dataclass
 from configs.settings import settings
 from src.embeddings.embedder import Embedder
 from src.generation.generator import Generator
+from src.logger import get_logger
 from src.retrieval.vector_store import SearchResult, VectorStore
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -36,21 +39,21 @@ class RAGPipeline:
     """
 
     def __init__(self):
-        print("=== Initialisation du pipeline RAG ===\n")
+        logger.info("Initialisation du pipeline RAG")
 
         # Charger l'index vectoriel (déjà construit et sauvegardé)
-        print("1/3 Chargement de l'index vectoriel...")
+        logger.info("1/3 Chargement de l'index vectoriel...")
         self.store = VectorStore.load()
 
         # Charger le modèle d'embeddings
-        print("\n2/3 Chargement du modèle d'embeddings...")
+        logger.info("2/3 Chargement du modèle d'embeddings...")
         self.embedder = Embedder()
 
         # Charger le générateur
-        print("\n3/3 Chargement du générateur...")
+        logger.info("3/3 Chargement du générateur...")
         self.generator = Generator()
 
-        print("\n=== Pipeline prêt ===\n")
+        logger.info("Pipeline prêt.")
 
     def query(self, question: str, top_k: int | None = None) -> RAGResponse:
         """

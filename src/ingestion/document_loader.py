@@ -7,6 +7,9 @@ from pathlib import Path
 from pypdf import PdfReader
 
 from src.ingestion.models import Document
+from src.logger import get_logger
+
+logger = get_logger(__name__)
 
 SUPPORTED_EXTENSIONS = {".pdf", ".txt"}
 
@@ -90,12 +93,16 @@ def load_documents_from_dir(directory: str | Path) -> list[Document]:
             try:
                 doc = load_document(file_path)
                 documents.append(doc)
-                print(f"  ✓ Chargé : {doc}")
+                logger.info("Chargé : %s", doc)
             except Exception as e:
                 errors.append((file_path.name, str(e)))
-                print(f"  ✗ Erreur : {file_path.name} — {e}")
+                logger.warning("Erreur chargement %s : %s", file_path.name, e)
 
     if errors:
-        print(f"\n{len(errors)} fichier(s) en erreur sur {len(documents) + len(errors)} total.")
+        logger.warning(
+            "%d fichier(s) en erreur sur %d total",
+            len(errors),
+            len(documents) + len(errors),
+        )
 
     return documents

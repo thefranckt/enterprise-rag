@@ -13,15 +13,18 @@ Architecture :
 
 import gradio as gr
 
+from src.logger import get_logger
 from src.pipeline import RAGPipeline
+
+logger = get_logger(__name__)
 
 # ---------------------------------------------------------------------------
 # Chargement du pipeline (une seule fois, au démarrage)
 # ---------------------------------------------------------------------------
 
-print("Chargement du pipeline RAG...")
+logger.info("Chargement du pipeline RAG...")
 rag = RAGPipeline()
-print("Pipeline prêt.\n")
+logger.info("Pipeline prêt.")
 
 
 # ---------------------------------------------------------------------------

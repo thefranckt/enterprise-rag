@@ -9,7 +9,10 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 
 from configs.settings import settings
+from src.logger import get_logger
 from src.processing.chunker import Chunk
+
+logger = get_logger(__name__)
 
 
 class Embedder:
@@ -29,10 +32,10 @@ class Embedder:
         puis mis en cache localement (~90MB).
         """
         model_name = model_name or settings.embedding_model_name
-        print(f"Chargement du modèle : {model_name}")
+        logger.info("Chargement du modèle : %s", model_name)
         self.model = SentenceTransformer(model_name)
         self.dimension = settings.embedding_dimension
-        print(f"Modèle prêt. Dimension des vecteurs : {self.dimension}")
+        logger.info("Modèle prêt. Dimension des vecteurs : %d", self.dimension)
 
     def embed_text(self, text: str) -> np.ndarray:
         """
@@ -68,7 +71,7 @@ class Embedder:
         # Extraire uniquement le texte de chaque chunk
         texts = [chunk.text for chunk in chunks]
 
-        print(f"Encodage de {len(texts)} chunks (batch_size={batch_size})...")
+        logger.info("Encodage de %d chunks (batch_size=%d)...", len(texts), batch_size)
 
         # Le modèle encode tous les textes en une seule passe optimisée
         embeddings = self.model.encode(
@@ -78,6 +81,6 @@ class Embedder:
             convert_to_numpy=True,
         )
 
-        print(f"Embeddings générés : shape={embeddings.shape}")
+        logger.info("Embeddings générés : shape=%s", embeddings.shape)
         return embeddings
     
